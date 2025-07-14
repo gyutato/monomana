@@ -1,24 +1,27 @@
-use clap::Parser;
+use anyhow::Result;
 
-/// 간단한 예제 프로그램
-#[derive(Parser)]
-#[command(name = "cli-test", version, about = "Rust CLI 예제")]
-struct Cli {
-    /// 인사할 대상
-    #[arg(short, long, default_value = "World")]
-    name: String,
+mod detect;
+mod cli;
+mod exec;
 
-    /// 대문자로 인사할지 여부
-    #[arg(short, long, action)]
-    shout: bool,
-}
+fn main() -> Result<()> {
+    env_logger::init();
 
-fn main() {
-    let args = Cli::parse();
+    // 1. Parse CLI arguments.
+    let (workspace, manager_opt, cmd_tokens) = cli::parse_cli();
 
-    let mut greeting = format!("Hello, {}!", args.name);
-    if args.shout {
-        greeting = greeting.to_uppercase();
-    }
-    println!("{greeting}");
+    // 2. Determine package manager (explicit or auto-detect).
+    let manager = match manager_opt {
+        Some(m) => m,
+        None => {
+            let cwd = std::env::current_dir()?;
+            detect::detect_manager(cwd)?
+        }
+    };
+
+    // 3. Execute command.
+    let status = exec::run(&workspace, manager, &cmd_tokens)?;
+
+    // 4. Propagate exit code.
+    std::process::exit(status.code().unwrap_or(1));
 }
