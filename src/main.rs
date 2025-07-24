@@ -3,6 +3,8 @@ use anyhow::Result;
 mod detect;
 mod cli;
 mod exec;
+mod workspace;
+mod completion;
 
 fn main() -> Result<()> {
     env_logger::init();
