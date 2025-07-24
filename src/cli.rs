@@ -10,14 +10,18 @@ pub struct CliArgs {
     /// Workspace name (first positional argument)
     pub workspace: String,
 
+    /// Perform a dry run without executing the command
+    #[arg(long, short = 'd', default_value_t = false)]
+    pub dry_run: bool,
+
     /// Remaining tokens (manager? + command) captured verbatim.
     #[arg(required = true, num_args = 1.., trailing_var_arg = true)]
     pub args: Vec<String>,
 }
 
 /// Parse CLI args and split into components.
-/// Returns (workspace, optional manager, command tokens)
-pub fn parse_cli() -> (String, Option<Manager>, Vec<String>) {
+/// Returns (workspace, optional manager, command tokens, dry_run)
+pub fn parse_cli() -> (String, Option<Manager>, Vec<String>, bool) {
     let raw = CliArgs::parse();
 
     let mut args = raw.args; // full list of remaining tokens
@@ -34,5 +38,5 @@ pub fn parse_cli() -> (String, Option<Manager>, Vec<String>) {
         args.remove(0);
     }
 
-    (raw.workspace, manager_opt, args)
+    (raw.workspace, manager_opt, args, raw.dry_run)
 }

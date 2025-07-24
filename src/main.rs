@@ -8,7 +8,7 @@ fn main() -> Result<()> {
     env_logger::init();
 
     // 1. Parse CLI arguments.
-    let (workspace, manager_opt, cmd_tokens) = cli::parse_cli();
+    let (workspace, manager_opt, cmd_tokens, dry_run) = cli::parse_cli();
 
     // 2. Determine package manager (explicit or auto-detect).
     let manager = match manager_opt {
@@ -20,7 +20,7 @@ fn main() -> Result<()> {
     };
 
     // 3. Execute command.
-    let status = exec::run(&workspace, manager, &cmd_tokens)?;
+    let status = exec::run(&workspace, manager, &cmd_tokens, dry_run)?;
 
     // 4. Propagate exit code.
     std::process::exit(status.code().unwrap_or(1));
