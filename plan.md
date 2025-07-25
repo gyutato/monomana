@@ -80,7 +80,7 @@ _monomana "$@"
 
 3.  **CLI Integration**
 
-    - [ ] **Add Hidden Subcommand**: Extend `CliArgs` with a hidden `__list_workspaces` subcommand that calls `discover_workspaces` and prints each name on a new line.
+    - [x] **Add Hidden Subcommand**: Extend `CliArgs` with a hidden `__list_workspaces` subcommand that calls `discover_workspaces` and prints each name on a new line.
 
 4.  **Zsh Autocompletion**
 
