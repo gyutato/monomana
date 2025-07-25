@@ -1,8 +1,11 @@
-use anyhow::{Result};
+use anyhow::{anyhow, Result};
+use globset::{Glob, GlobSetBuilder};
 use log::debug;
 use serde::Deserialize;
+use std::collections::HashSet;
 use std::fs::File;
 use std::path::{Path, PathBuf};
+use walkdir::WalkDir;
 
 /// Represents the `packages` field in a `pnpm-workspace.yaml` file.
 #[derive(Debug, Deserialize)]
@@ -110,13 +113,60 @@ fn find_monorepo_root(start_dir: &Path) -> Result<Option<MonorepoRoot>> {
 /// Discovers all workspace package names from the monorepo root.
 pub fn discover_workspaces() -> Result<Vec<String>> {
     let current_dir = std::env::current_dir()?;
-    
+
     let Some(root) = find_monorepo_root(&current_dir)? else {
+        // Not in a monorepo, no workspaces to find.
         return Ok(vec![]);
     };
+    debug!("Monorepo root found at: {}", root.path.display());
 
-    debug!("Found monorepo root at '{}' with globs: {:?}", root.path.display(), root.globs);
+    let mut builder = GlobSetBuilder::new();
+    for glob_str in &root.globs {
+        let glob = Glob::new(glob_str)?;
+        builder.add(glob);
+    }
+    let glob_set = builder.build()?;
 
-    // TODO: Step 3 - Expand globs and parse package.json names.
-    Ok(vec![])
-} 
+    let mut workspace_names = HashSet::new();
+
+    for entry in WalkDir::new(&root.path)
+        .min_depth(1) // Skip the root directory itself
+        .max_depth(4) // Optimization: limit search depth
+        .into_iter()
+        .filter_entry(|e| !is_hidden_or_node_modules(e))
+        .filter_map(Result::ok) // Ignore errors during walk
+    {
+        let path = entry.path();
+        // Check if the path relative to the root matches any of the globs
+        if let Ok(relative_path) = path.strip_prefix(&root.path) {
+            if glob_set.is_match(relative_path) {
+                let package_json_path = path.join("package.json");
+                if package_json_path.exists() {
+                    if let Ok(name) = extract_package_name(&package_json_path) {
+                        workspace_names.insert(name);
+                    }
+                }
+            }
+        }
+    }
+
+    let mut sorted_names: Vec<_> = workspace_names.into_iter().collect();
+    sorted_names.sort();
+    Ok(sorted_names)
+}
+
+/// Helper to check if a directory entry is hidden or `node_modules`.
+fn is_hidden_or_node_modules(entry: &walkdir::DirEntry) -> bool {
+    entry
+        .file_name()
+        .to_str()
+        .map(|s| s.starts_with('.') || s == "node_modules")
+        .unwrap_or(false)
+}
+
+/// Helper to extract the `name` from a `package.json` file.
+fn extract_package_name(path: &Path) -> Result<String> {
+    let file = File::open(path)?;
+    let package_json: PackageJson = serde_json::from_reader(file)?;
+    package_json.name.ok_or_else(|| anyhow!("`name` field missing in {}", path.display()))
+}
