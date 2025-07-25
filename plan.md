@@ -63,21 +63,36 @@ _monomana "$@"
 
 ## Implementation Steps
 
-1. **Dependencies**
-   - `clap_complete` for template generation (compile-time helper).
-   - `globset`, `serde`, `serde_json`, `serde_yaml`, `dirs`, `sha2`.
-2. **Module scaffold**
-   - `workspace.rs` → discover & cache workspaces.
-   - `completion.rs` → install logic & template embed.
-3. **Add subcommand**
-   - Extend `CliArgs` with hidden `__list_workspaces`.
-4. **On startup**
-   - Call `completion::ensure_zsh_completion_installed()`.
-5. **Unit tests**
-   - Mock repo layout → verify workspace discovery.
-   - Temp HOME → ensure file written and hash changes update it.
-6. **Doc update**
-   - README “Tab-completion works automatically in zsh”.
+1.  **Dependencies & Scaffolding**
+
+    - [x] Add `clap_complete`, `globset`, `serde`, `sha2`, etc. to `Cargo.toml`.
+    - [x] Create `workspace.rs` and `completion.rs` modules.
+
+2.  **Workspace Discovery (Core Logic)**
+
+    - [x] **Find Monorepo Root**: Implement `find_monorepo_root` to locate the top-level directory containing either `pnpm-workspace.yaml` or a `package.json` with a `workspaces` field. This includes parsing these files to extract the raw glob patterns.
+    - [ ] **Expand Globs & Collect Names**:
+      - In `discover_workspaces`, use the `globset` crate to match the collected patterns against directories within the monorepo root.
+      - For each matched directory, read its `package.json`.
+      - Parse the `package.json` and extract the `name` field.
+      - Collect all unique names into a `Vec<String>`.
+    - [ ] **(Optional) Caching**: Implement in-memory or on-disk caching for the discovered list to improve performance on subsequent runs.
+
+3.  **CLI Integration**
+
+    - [ ] **Add Hidden Subcommand**: Extend `CliArgs` with a hidden `__list_workspaces` subcommand that calls `discover_workspaces` and prints each name on a new line.
+
+4.  **Zsh Autocompletion**
+
+    - [ ] **Generate & Embed Template**: Use `clap_complete` (likely in a `build.rs` script) to generate a static zsh completion script template and embed it in the binary. The template will be designed to call `monomana __list_workspaces`.
+    - [ ] **Auto-install Logic**: In `completion.rs`, implement `ensure_zsh_completion_installed`. This function will check for the completion script in standard zsh paths (`$XDG_DATA_HOME/zsh/site-functions`, etc.) and write/update it if it's missing or outdated by comparing its hash with the embedded one.
+    - [ ] **Startup Hook**: Call `ensure_zsh_completion_installed` from `main.rs` on startup, wrapped in a way that doesn't block the main functionality (e.g., in a separate thread or with a timeout).
+
+5.  **Testing & Documentation**
+    - [ ] Add unit tests for glob expansion and `package.json` name extraction.
+    - [ ] Add integration tests to verify that `__list_workspaces` works correctly in a mock monorepo.
+    - [ ] Add tests for the completion script installation logic using a temporary home directory.
+    - [ ] Update the README to explain the automatic zsh completion feature.
 
 ## Nice-to-Have (stretch)
 
