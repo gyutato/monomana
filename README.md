@@ -64,3 +64,56 @@ The tool reads the `workspaces` field in the `package.json` file or the `pnpm-wo
 ```bash
 monomana list-workspaces
 ```
+
+## Auto-completion
+
+`monomana` provides workspace auto-completion for zsh(oh-my-zsh) environment.
+
+Press `tab` key after `monomana run` to auto-complete the workspace name.
+
+### Oh-My-Zsh
+
+If you are using oh-my-zsh, the auto-completion should be enabled by default.
+
+**Error handling in this case is TBD.**
+
+### zsh (without oh-my-zsh)
+
+In vanilla zsh environment, you need to add the following to your `.zshrc` file.
+
+For shorthand, add the following to your `.zshrc` file.
+
+```bash
+# your .zshrc
+# ...other rc configs
+ZSH_COMPLETION_DIR=$HOME/.zsh/completions
+fpath=(ZSH_COMPLETION_DIR $fpath)
+typeset -U fpath
+autoload -Uz compinit
+compinit
+```
+
+**Here is the detailed explanation of the above code:**
+
+1. run `compinit`
+
+```bash
+# your .zshrc
+# ...other rc configs
+autoload -U compinit; compinit
+```
+
+2. add `fpath` path **before** running `compinit`
+
+```bash
+ZSH_COMPLETION_DIR=$HOME/.zsh/completions
+fpath=(ZSH_COMPLETION_DIR $fpath)
+typeset -U fpath
+autoload -U compinit; compinit
+```
+
+3. (Optional) activate `GLOB_COMPLETE` option
+
+```bash
+setopt glob_complete
+```

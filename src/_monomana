@@ -1,0 +1,42 @@
+#compdef monomana
+# zsh completion for the `monomana` CLI
+
+_monomana() {
+  local context state line
+  typeset -A opt_args
+
+  # 1번째 토큰은 sub‑command, 나머지는 인수로 취급
+  _arguments -C \
+    '1:command:->cmd' \
+    '*::arg:->args'
+
+  case $state in
+    # ── sub‑command 자리 ──────────────────────────────────────
+    cmd)
+      # 필요하면 clap_complete로 미리 생성해둔 목록을 재사용해도
+ 됨
+      local -a subcmds=(
+        'run:Run a workspace'
+        'list-workspace:Show all workspaces'
+        'help:Show help'
+      )
+      _describe -t commands 'monomana commands' subcmds
+      return
+    ;;
+  esac
+
+  # ── 인수 자리 ──────────────────────────────────────────────
+  local prev=$words[CURRENT-1]
+  if [[ $prev == run ]]; then
+    # `monomana list-workspaces` 결과를 한 줄씩 읽어 배열에 담는
+다
+    local -a workspaces
+    workspaces=(${(f)"$(_call_program workspaces monomana list-workspaces 2>/dev/null)"})
+
+    # 후보 등록
+    _describe 'workspace' workspaces
+    return
+  fi
+}
+
+_monomana "$@"
