@@ -107,7 +107,7 @@ autoload -U compinit; compinit
 
 ```bash
 ZSH_COMPLETION_DIR=$HOME/.zsh/completions
-fpath=(ZSH_COMPLETION_DIR $fpath)
+fpath=($ZSH_COMPLETION_DIR $fpath)
 typeset -U fpath
 autoload -U compinit; compinit
 ```
