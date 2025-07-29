@@ -10,6 +10,8 @@ mod workspace;
 
 fn main() -> Result<()> {
     env_logger::init();
+    // Ensure zsh completion script is present (non-fatal on error)
+    completion::ensure_zsh_completion_installed()?;
     let cli = Cli::parse();
 
     match cli.command {

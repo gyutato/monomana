@@ -13,8 +13,7 @@ _monomana() {
   case $state in
     # ── sub‑command 자리 ──────────────────────────────────────
     cmd)
-      # 필요하면 clap_complete로 미리 생성해둔 목록을 재사용해도
- 됨
+      # 필요하면 clap_complete로 미리 생성해둔 목록을 재사용해도 됨
       local -a subcmds=(
         'run:Run a workspace'
         'list-workspace:Show all workspaces'
@@ -28,8 +27,7 @@ _monomana() {
   # ── 인수 자리 ──────────────────────────────────────────────
   local prev=$words[CURRENT-1]
   if [[ $prev == run ]]; then
-    # `monomana list-workspaces` 결과를 한 줄씩 읽어 배열에 담는
-다
+    # `monomana list-workspaces` 결과를 한 줄씩 읽어 배열에 담는다
     local -a workspaces
     workspaces=(${(f)"$(_call_program workspaces monomana list-workspaces 2>/dev/null)"})
 
