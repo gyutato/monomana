@@ -87,7 +87,7 @@ For shorthand, add the following to your `.zshrc` file.
 # your .zshrc
 # ...other rc configs
 ZSH_COMPLETION_DIR=$HOME/.zsh/completions
-fpath=(ZSH_COMPLETION_DIR $fpath)
+fpath=($ZSH_COMPLETION_DIR $fpath)
 typeset -U fpath
 autoload -Uz compinit
 compinit
