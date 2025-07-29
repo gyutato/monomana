@@ -16,7 +16,7 @@ _monomana() {
       # 필요하면 clap_complete로 미리 생성해둔 목록을 재사용해도 됨
       local -a subcmds=(
         'run:Run a workspace'
-        'list-workspace:Show all workspaces'
+        'list-workspaces:Show all workspaces'
         'help:Show help'
       )
       _describe -t commands 'monomana commands' subcmds
